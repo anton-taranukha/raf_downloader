@@ -131,6 +131,7 @@ function getDownloadFileName(response) {
     <section class="download-panel" aria-labelledby="page-title">
       <form class="download-form" @submit.prevent="downloadFiles(false)">
         <label id="page-title" class="file-label" for="file-name-0">Дорожні</label>
+        <p class="deploy-marker">Тест деплою CI/CD</p>
 
         <div class="file-list">
           <div

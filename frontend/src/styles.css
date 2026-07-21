@@ -44,6 +44,12 @@ input {
   font-weight: 700;
 }
 
+.deploy-marker {
+  margin: -6px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
 .file-list {
   display: grid;
   gap: 10px;
