@@ -1,0 +1,7 @@
+server:
+  port: 8080
+
+google-drive:
+  folder-id: ${GOOGLE_DRIVE_FOLDER_ID:1hbWUcdEkdDcPMGi-9lTB1ykqcBsq1gTA}
+  # Path to a service account JSON key. If empty, Application Default Credentials are used.
+  credentials-path: ${GOOGLE_APPLICATION_CREDENTIALS:}

@@ -1,0 +1,15 @@
+backend/target/
+frontend/dist/
+frontend/node_modules/
+frontend/.vite/
+test-documents/
+secrets/
+keys/
+
+*.log
+.env
+*.tar
+*.key
+*.pem
+*service-account*.json
+soy-geography-*.json
