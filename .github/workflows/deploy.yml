@@ -55,6 +55,10 @@ jobs:
             mkdir -p secrets
             test -f secrets/service-account.json
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-            APP_IMAGE="${{ env.IMAGE_NAME }}" docker compose -f docker-compose.server.yml pull
-            APP_IMAGE="${{ env.IMAGE_NAME }}" docker compose -f docker-compose.server.yml up -d
+            docker compose -f docker-compose.server.yml pull
+            docker compose -f docker-compose.server.yml up -d
+            sleep 5
+            asset_path=$(curl -fsS http://127.0.0.1:8080/ | sed -n 's/.*src="\([^"]*\.js\)".*/\1/p')
+            test -n "$asset_path"
+            curl -fsS "http://127.0.0.1:8080${asset_path}" | grep -q "deploy-marker"
             docker image prune -f
