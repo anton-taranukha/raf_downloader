@@ -65,5 +65,5 @@ jobs:
             done
             asset_path=$(sed -n 's/.*src="\([^"]*\.js\)".*/\1/p' /tmp/raf-index.html)
             test -n "$asset_path"
-            curl -fsS "http://127.0.0.1:8080${asset_path}" | grep -q "deploy-marker"
+            curl -fsS "http://127.0.0.1:8080${asset_path}" | grep -q "Дорожні"
             docker image prune -f
