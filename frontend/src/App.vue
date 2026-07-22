@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 
+const sharedCode = ref('')
 const fileNames = ref([''])
 const isLoading = ref(false)
 const message = ref('')
@@ -8,8 +9,10 @@ const messageType = ref('info')
 const maxFileCount = 10
 
 async function downloadFiles(asArchive = false) {
+  const code = sharedCode.value.trim()
   const trimmedFileNames = fileNames.value
     .map((fileName) => fileName.trim())
+    .map((fileName) => applySharedCode(fileName, code))
     .map(normalizePdfFileName)
     .filter(Boolean)
   message.value = ''
@@ -116,6 +119,24 @@ function normalizePdfFileName(fileName) {
   return fileName.toLowerCase().endsWith('.pdf') ? fileName : `${fileName}.pdf`
 }
 
+function applySharedCode(fileName, code) {
+  if (!fileName) {
+    return ''
+  }
+
+  if (!code) {
+    return fileName
+  }
+
+  const nameWithoutPdfExtension = fileName.toLowerCase().endsWith('.pdf')
+    ? fileName.slice(0, -4)
+    : fileName
+
+  return nameWithoutPdfExtension.endsWith(code)
+    ? nameWithoutPdfExtension
+    : `${nameWithoutPdfExtension}${code}`
+}
+
 function getDownloadFileName(response) {
   const disposition = response.headers.get('content-disposition')
   const utf8Match = disposition?.match(/filename\*=UTF-8''([^;]+)/i)
@@ -130,6 +151,17 @@ function getDownloadFileName(response) {
   <main class="page">
     <section class="download-panel" aria-labelledby="page-title">
       <form class="download-form" @submit.prevent="downloadFiles(false)">
+        <div class="code-field">
+          <label class="code-label" for="shared-code">code</label>
+          <input
+            id="shared-code"
+            v-model="sharedCode"
+            class="code-input"
+            type="text"
+            autocomplete="off"
+          />
+        </div>
+
         <label id="page-title" class="file-label" for="file-name-0">Дорожні</label>
 
         <div class="file-list">
