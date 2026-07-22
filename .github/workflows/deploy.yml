@@ -58,12 +58,10 @@ jobs:
             docker compose -f docker-compose.server.yml pull
             docker compose -f docker-compose.server.yml up -d
             for attempt in $(seq 1 30); do
-              if curl -fsS http://127.0.0.1:8080/ >/tmp/raf-index.html; then
+              if curl -fsS http://127.0.0.1:8080/api/health | grep -qx ok; then
                 break
               fi
               sleep 2
             done
-            asset_path=$(sed -n 's/.*src="\([^"]*\.js\)".*/\1/p' /tmp/raf-index.html)
-            test -n "$asset_path"
-            curl -fsS "http://127.0.0.1:8080${asset_path}" | grep -q "Дорожні"
+            curl -fsS http://127.0.0.1:8080/api/health | grep -qx ok
             docker image prune -f

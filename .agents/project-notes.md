@@ -29,6 +29,12 @@ This repository is used from Windows PowerShell at `C:\Projects\raf`.
   - `Get-NetTCPConnection -LocalPort 5173 -ErrorAction SilentlyContinue`
   - `Invoke-WebRequest -UseBasicParsing http://127.0.0.1:5173/`
 
+## Deploy Checks
+
+- Do not verify deployment by grepping UI text or built JS assets.
+- UI copy changes frequently and Vite bundles can encode text differently.
+- Use `GET /api/health`, which returns `ok`, for server readiness checks.
+
 ## Current Feature Context
 
 - Customer requested a shared `code` field above the road-number inputs.
