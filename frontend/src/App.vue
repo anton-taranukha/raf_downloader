@@ -1,13 +1,23 @@
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 
+const isAdminPage = window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/')
 const sharedCode = ref('')
 const fileNames = ref([''])
 const isLoading = ref(false)
 const message = ref('')
 const messageType = ref('info')
 const maxFileCount = 10
+const adminLogs = ref([])
+const adminMessage = ref('')
+const isAdminLoading = ref(false)
 let hideMessageTimeoutId = null
+
+onMounted(() => {
+  if (isAdminPage) {
+    loadAdminLogs()
+  }
+})
 
 async function downloadFiles(asArchive = false) {
   const code = sharedCode.value.trim()
@@ -185,11 +195,84 @@ function getDownloadFileName(response) {
 
   return encodedName ? decodeURIComponent(encodedName) : ''
 }
+
+async function loadAdminLogs() {
+  isAdminLoading.value = true
+  adminMessage.value = ''
+
+  try {
+    const response = await fetch('/api/admin/downloads')
+
+    if (!response.ok) {
+      throw new Error('Не вдалося завантажити список.')
+    }
+
+    adminLogs.value = await response.json()
+  } catch (error) {
+    adminMessage.value = error.message
+  } finally {
+    isAdminLoading.value = false
+  }
+}
+
+function formatAdminDate(value) {
+  return new Intl.DateTimeFormat('uk-UA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).format(new Date(value))
+}
+
+function formatAdminStatus(status) {
+  return status === 'success' ? 'скачано' : 'помилка'
+}
 </script>
 
 <template>
   <main class="page">
-    <section class="download-panel" aria-labelledby="page-title">
+    <section v-if="isAdminPage" class="admin-panel" aria-labelledby="admin-title">
+      <div class="admin-header">
+        <h1 id="admin-title" class="admin-title">Скачування</h1>
+        <button class="admin-refresh-button" type="button" :disabled="isAdminLoading" @click="loadAdminLogs">
+          {{ isAdminLoading ? 'Оновлення...' : 'Оновити' }}
+        </button>
+      </div>
+
+      <p v-if="adminMessage" class="message error">{{ adminMessage }}</p>
+
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Число-час</th>
+              <th>Назва файлу</th>
+              <th>Статус</th>
+              <th>Повідомлення</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="adminLogs.length === 0">
+              <td colspan="4">Записів немає.</td>
+            </tr>
+            <tr v-for="log in adminLogs" :key="log.id">
+              <td>{{ formatAdminDate(log.requestedAt) }}</td>
+              <td>{{ log.fileName }}</td>
+              <td>
+                <span class="admin-status" :class="log.status">
+                  {{ formatAdminStatus(log.status) }}
+                </span>
+              </td>
+              <td>{{ log.message || '' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section v-else class="download-panel" aria-labelledby="page-title">
       <form class="download-form" @submit.prevent="downloadFiles(false)">
         <h1 id="page-title" class="sr-only">Завантаження файлів</h1>
 

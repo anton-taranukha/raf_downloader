@@ -9,5 +9,10 @@ services:
       - ./google-drive.env
     environment:
       GOOGLE_APPLICATION_CREDENTIALS: "/run/secrets/google-service-account.json"
+      DOWNLOAD_LOG_DB_PATH: "/data/download-log"
     volumes:
       - "./secrets/service-account.json:/run/secrets/google-service-account.json:ro"
+      - "download-data:/data"
+
+volumes:
+  download-data:

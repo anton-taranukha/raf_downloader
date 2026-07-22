@@ -5,6 +5,8 @@ frontend/.vite/
 test-documents/
 secrets/
 keys/
+data/
+download-log*
 
 *.log
 .env

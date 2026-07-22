@@ -27,10 +27,16 @@ public class FileDownloadService {
 
     private final Drive drive;
     private final String folderId;
+    private final DownloadLogRepository downloadLogRepository;
 
-    public FileDownloadService(Drive drive, DocumentsProperties documentsProperties) {
+    public FileDownloadService(
+            Drive drive,
+            DocumentsProperties documentsProperties,
+            DownloadLogRepository downloadLogRepository
+    ) {
         this.drive = drive;
         this.folderId = documentsProperties.folderId();
+        this.downloadLogRepository = downloadLogRepository;
     }
 
     public DownloadedFile load(String fileName) {
@@ -50,6 +56,7 @@ public class FileDownloadService {
                         .setSupportsAllDrives(true)
                         .executeMediaAndDownloadTo(outputStream);
 
+                recordSuccess(normalizedFileName);
                 return new DownloadedFile(file.getName(), file.getMimeType(), outputStream.toByteArray());
             }
 
@@ -57,8 +64,13 @@ public class FileDownloadService {
                     .export(file.getId(), exportFormat.mimeType())
                     .executeMediaAndDownloadTo(outputStream);
 
+            recordSuccess(normalizedFileName);
             return new DownloadedFile(file.getName() + exportFormat.extension(), exportFormat.mimeType(), outputStream.toByteArray());
+        } catch (FileNotFoundInDocumentsException exception) {
+            recordError(normalizedFileName, exception.getMessage());
+            throw exception;
         } catch (IOException exception) {
+            recordError(normalizedFileName, "Could not download file");
             throw new GoogleDriveAccessException("Could not download file from Google Drive", exception);
         }
     }
@@ -124,6 +136,22 @@ public class FileDownloadService {
 
     private String escapeQueryValue(String value) {
         return value.replace("\\", "\\\\").replace("'", "\\'");
+    }
+
+    private void recordSuccess(String fileName) {
+        try {
+            downloadLogRepository.recordSuccess(fileName);
+        } catch (RuntimeException ignored) {
+            // Downloading must keep working even if the admin log is temporarily unavailable.
+        }
+    }
+
+    private void recordError(String fileName, String message) {
+        try {
+            downloadLogRepository.recordError(fileName, message);
+        } catch (RuntimeException ignored) {
+            // Downloading must keep working even if the admin log is temporarily unavailable.
+        }
     }
 
     private String uniqueEntryName(String fileName, Map<String, Integer> usedEntryNames) {

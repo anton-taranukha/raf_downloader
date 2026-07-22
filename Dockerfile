@@ -20,7 +20,7 @@ RUN mvn -f backend/pom.xml -q package -DskipTests
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-RUN addgroup -S app && adduser -S app -G app
+RUN addgroup -S app && adduser -S app -G app && mkdir -p /data && chown app:app /data
 
 ENV SERVER_PORT=8080
 ENV GOOGLE_DRIVE_FOLDER_ID=1hbWUcdEkdDcPMGi-9lTB1ykqcBsq1gTA
