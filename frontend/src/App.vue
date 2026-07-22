@@ -7,6 +7,7 @@ const isLoading = ref(false)
 const message = ref('')
 const messageType = ref('info')
 const maxFileCount = 10
+let hideMessageTimeoutId = null
 
 async function downloadFiles(asArchive = false) {
   const code = sharedCode.value.trim()
@@ -15,11 +16,10 @@ async function downloadFiles(asArchive = false) {
     .map((fileName) => applySharedCode(fileName, code))
     .map(normalizePdfFileName)
     .filter(Boolean)
-  message.value = ''
+  clearMessage()
 
   if (trimmedFileNames.length === 0) {
-    message.value = 'Введіть хоча б одну назву файлу.'
-    messageType.value = 'error'
+    showMessage('Введіть хоча б одну назву файлу.', 'error')
     return
   }
 
@@ -28,18 +28,14 @@ async function downloadFiles(asArchive = false) {
   try {
     if (asArchive) {
       await downloadFilesArchive(trimmedFileNames)
-      message.value = `Архів передано на скачування: ${trimmedFileNames.length} файлів.`
+      showMessage(`Архів передано на скачування: ${trimmedFileNames.length} файлів.`, 'success')
     } else {
       const result = await downloadFilesSeparately(trimmedFileNames)
-      message.value = getSeparateDownloadMessage(result)
-      messageType.value = getSeparateDownloadMessageType(result)
+      showMessage(getSeparateDownloadMessage(result), getSeparateDownloadMessageType(result))
       return
     }
-
-    messageType.value = 'success'
   } catch (error) {
-    message.value = error.message
-    messageType.value = 'error'
+    showMessage(error.message, 'error')
   } finally {
     isLoading.value = false
   }
@@ -150,10 +146,11 @@ function getSeparateDownloadMessage(result) {
   }
 
   if (result.failedFiles.length > 0) {
-    parts.push(`Не вдалося скачати: ${result.failedFiles.join('; ')}.`)
+    parts.push('Не вдалося скачати:')
+    parts.push(...result.failedFiles.map((failedFile) => `- ${failedFile}`))
   }
 
-  return parts.join(' ')
+  return parts.join('\n')
 }
 
 function getSeparateDownloadMessageType(result) {
@@ -162,6 +159,22 @@ function getSeparateDownloadMessageType(result) {
   }
 
   return result.downloadedCount > 0 ? 'warning' : 'error'
+}
+
+function showMessage(text, type) {
+  clearMessage()
+  message.value = text
+  messageType.value = type
+  hideMessageTimeoutId = window.setTimeout(clearMessage, 5000)
+}
+
+function clearMessage() {
+  if (hideMessageTimeoutId) {
+    window.clearTimeout(hideMessageTimeoutId)
+    hideMessageTimeoutId = null
+  }
+
+  message.value = ''
 }
 
 function getDownloadFileName(response) {

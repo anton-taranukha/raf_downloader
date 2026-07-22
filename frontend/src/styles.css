@@ -170,6 +170,7 @@ input {
   min-height: 22px;
   margin: 2px 0 0;
   font-size: 15px;
+  white-space: pre-line;
 }
 
 .message.error {
