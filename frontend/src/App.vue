@@ -151,6 +151,8 @@ function getDownloadFileName(response) {
   <main class="page">
     <section class="download-panel" aria-labelledby="page-title">
       <form class="download-form" @submit.prevent="downloadFiles(false)">
+        <h1 id="page-title" class="sr-only">Завантаження файлів</h1>
+
         <div class="code-field">
           <label class="code-label" for="shared-code">code</label>
           <input
@@ -161,8 +163,6 @@ function getDownloadFileName(response) {
             autocomplete="off"
           />
         </div>
-
-        <label id="page-title" class="file-label" for="file-name-0">Дорожні</label>
 
         <div class="file-list">
           <div
@@ -178,6 +178,7 @@ function getDownloadFileName(response) {
               type="text"
               placeholder="Наприклад: 12345"
               autocomplete="off"
+              :aria-label="`Назва файлу ${index + 1}`"
             />
             <button
               v-if="fileNames.length > 1"
