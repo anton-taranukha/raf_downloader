@@ -116,7 +116,7 @@ public class FileDownloadService {
                 .getFiles();
 
         if (files == null || files.isEmpty()) {
-            throw new FileNotFoundInDocumentsException("File was not found in the Google Drive folder");
+            throw new FileNotFoundInDocumentsException("File was not found");
         }
 
         return files.getFirst();

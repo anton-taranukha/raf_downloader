@@ -30,8 +30,10 @@ async function downloadFiles(asArchive = false) {
       await downloadFilesArchive(trimmedFileNames)
       message.value = `Архів передано на скачування: ${trimmedFileNames.length} файлів.`
     } else {
-      await downloadFilesSeparately(trimmedFileNames)
-      message.value = `Файли передано на скачування: ${trimmedFileNames.length}.`
+      const result = await downloadFilesSeparately(trimmedFileNames)
+      message.value = getSeparateDownloadMessage(result)
+      messageType.value = getSeparateDownloadMessageType(result)
+      return
     }
 
     messageType.value = 'success'
@@ -45,17 +47,20 @@ async function downloadFiles(asArchive = false) {
 
 async function downloadFilesSeparately(trimmedFileNames) {
   const failedFiles = []
+  let downloadedCount = 0
 
   for (const trimmedFileName of trimmedFileNames) {
     try {
       await downloadFile(trimmedFileName)
+      downloadedCount += 1
     } catch (error) {
       failedFiles.push(`${trimmedFileName}: ${error.message}`)
     }
   }
 
-  if (failedFiles.length > 0) {
-    throw new Error(`Не вдалося скачати: ${failedFiles.join('; ')}.`)
+  return {
+    downloadedCount,
+    failedFiles,
   }
 }
 
@@ -135,6 +140,28 @@ function applySharedCode(fileName, code) {
   return nameWithoutPdfExtension.endsWith(code)
     ? nameWithoutPdfExtension
     : `${nameWithoutPdfExtension}${code}`
+}
+
+function getSeparateDownloadMessage(result) {
+  const parts = []
+
+  if (result.downloadedCount > 0) {
+    parts.push(`Скачано: ${result.downloadedCount}.`)
+  }
+
+  if (result.failedFiles.length > 0) {
+    parts.push(`Не вдалося скачати: ${result.failedFiles.join('; ')}.`)
+  }
+
+  return parts.join(' ')
+}
+
+function getSeparateDownloadMessageType(result) {
+  if (result.failedFiles.length === 0) {
+    return 'success'
+  }
+
+  return result.downloadedCount > 0 ? 'warning' : 'error'
 }
 
 function getDownloadFileName(response) {
