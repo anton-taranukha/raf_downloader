@@ -5,8 +5,9 @@ services:
     image: google-drive-documents-downloader:latest
     ports:
       - "8080:8080"
+    env_file:
+      - ./google-drive.env
     environment:
-      GOOGLE_DRIVE_FOLDER_ID: "1pjR3vYJMn814Fy0XJDOUGkSBvGYeG0o-"
       GOOGLE_APPLICATION_CREDENTIALS: "/run/secrets/google-service-account.json"
     volumes:
       - "./secrets/service-account.json:/run/secrets/google-service-account.json:ro"
