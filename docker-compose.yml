@@ -6,7 +6,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      GOOGLE_DRIVE_FOLDER_ID: "13A-wpOaLfwUxt2XEo077_BolG6R9ccpx"
+      GOOGLE_DRIVE_FOLDER_ID: "1pjR3vYJMn814Fy0XJDOUGkSBvGYeG0o-"
       GOOGLE_APPLICATION_CREDENTIALS: "/run/secrets/google-service-account.json"
     volumes:
       - "./secrets/service-account.json:/run/secrets/google-service-account.json:ro"
