@@ -50,10 +50,32 @@ function collectFileNames() {
   const code = sharedCode.value.trim()
 
   return fileNames.value
-    .flatMap((fileName) => fileName.trim().split(/\s+/))
+    .flatMap(splitFileNameInput)
     .map((fileName) => applySharedCode(fileName, code))
     .map(normalizePdfFileName)
     .filter(Boolean)
+}
+
+function splitFileNameInput(fileName) {
+  return fileName
+    .trim()
+    .split(/[\s,;]+/)
+    .filter(Boolean)
+}
+
+function handleFileNamePaste(event, index) {
+  const pastedText = event.clipboardData?.getData('text') || ''
+  const pastedFileNames = splitFileNameInput(pastedText)
+
+  if (pastedFileNames.length <= 1) {
+    return
+  }
+
+  event.preventDefault()
+
+  const nextFileNames = [...fileNames.value]
+  nextFileNames.splice(index, 1, ...pastedFileNames)
+  fileNames.value = nextFileNames.slice(0, maxFileCount)
 }
 
 async function downloadFilesSeparately(trimmedFileNames) {
@@ -306,6 +328,7 @@ function formatAdminStatus(status) {
               type="text"
               placeholder="Наприклад: 12345"
               autocomplete="off"
+              @paste="handleFileNamePaste($event, index)"
               :aria-label="`Назва файлу ${index + 1}`"
             />
             <button
