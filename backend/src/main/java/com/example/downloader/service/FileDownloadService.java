@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,21 +92,37 @@ public class FileDownloadService {
 
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            List<String> missingFileNames = new ArrayList<>();
+            int downloadedFileCount = 0;
 
             try (ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream)) {
                 Map<String, Integer> usedEntryNames = new HashMap<>();
 
                 for (String fileName : normalizedFileNames) {
-                    DownloadedFile downloadedFile = load(fileName);
+                    DownloadedFile downloadedFile;
+                    try {
+                        downloadedFile = load(fileName);
+                    } catch (FileNotFoundInDocumentsException exception) {
+                        missingFileNames.add(fileName);
+                        continue;
+                    }
+
                     String entryName = uniqueEntryName(downloadedFile.fileName(), usedEntryNames);
                     ZipEntry entry = new ZipEntry(entryName);
                     zipOutputStream.putNextEntry(entry);
                     zipOutputStream.write(downloadedFile.content());
                     zipOutputStream.closeEntry();
+                    downloadedFileCount += 1;
                 }
             }
 
-            return new DownloadedFile("dorozhni.zip", "application/zip", outputStream.toByteArray());
+            return new DownloadedFile(
+                    "dorozhni.zip",
+                    "application/zip",
+                    outputStream.toByteArray(),
+                    missingFileNames,
+                    downloadedFileCount
+            );
         } catch (IOException exception) {
             throw new GoogleDriveAccessException("Could not create download archive", exception);
         }

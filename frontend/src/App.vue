@@ -32,8 +32,8 @@ async function downloadFiles(asArchive = false) {
 
   try {
     if (asArchive) {
-      await downloadFilesArchive(trimmedFileNames)
-      showMessage(`Архів передано на скачування: ${trimmedFileNames.length} файлів.`, 'success')
+      const result = await downloadFilesArchive(trimmedFileNames)
+      showMessage(getArchiveDownloadMessage(result), getSeparateDownloadMessageType(result))
     } else {
       const result = await downloadFilesSeparately(trimmedFileNames)
       showMessage(getSeparateDownloadMessage(result), getSeparateDownloadMessageType(result))
@@ -123,6 +123,14 @@ async function downloadFilesArchive(trimmedFileNames) {
   }
 
   await saveResponse(response, 'dorozhni.zip')
+
+  const missingFiles = getMissingFileNames(response)
+  const downloadedCount = Number.parseInt(response.headers.get('x-downloaded-file-count') || '', 10)
+
+  return {
+    downloadedCount: Number.isNaN(downloadedCount) ? trimmedFileNames.length - missingFiles.length : downloadedCount,
+    failedFiles: missingFiles.map((fileName) => `${fileName}: File was not found`),
+  }
 }
 
 async function saveResponse(response, fallbackFileName) {
@@ -198,6 +206,14 @@ function getSeparateDownloadMessageType(result) {
   return result.downloadedCount > 0 ? 'warning' : 'error'
 }
 
+function getArchiveDownloadMessage(result) {
+  if (result.failedFiles.length === 0) {
+    return `Архів передано на скачування: ${result.downloadedCount} файлів.`
+  }
+
+  return getSeparateDownloadMessage(result)
+}
+
 function showMessage(text, type) {
   clearMessage()
   message.value = text
@@ -221,6 +237,18 @@ function getDownloadFileName(response) {
   const encodedName = utf8Match?.[1] || plainMatch?.[1]
 
   return encodedName ? decodeURIComponent(encodedName) : ''
+}
+
+function getMissingFileNames(response) {
+  const encodedMissingFiles = response.headers.get('x-missing-files')
+
+  if (!encodedMissingFiles) {
+    return []
+  }
+
+  return decodeURIComponent(encodedMissingFiles)
+    .split('\n')
+    .filter(Boolean)
 }
 
 async function loadAdminLogs() {
