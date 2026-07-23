@@ -23,7 +23,8 @@ input {
 .page {
   min-height: 100vh;
   display: grid;
-  place-items: center;
+  align-items: start;
+  justify-items: center;
   padding: 24px;
 }
 
@@ -130,6 +131,7 @@ input {
 }
 
 .code-field {
+  order: 1;
   display: grid;
   justify-items: center;
   gap: 6px;
@@ -161,6 +163,7 @@ input {
 }
 
 .file-list {
+  order: 3;
   display: grid;
   gap: 10px;
 }
@@ -210,6 +213,7 @@ input {
 }
 
 .actions {
+  order: 2;
   display: grid;
   grid-template-columns: auto minmax(140px, 1fr) minmax(160px, 1fr);
   gap: 10px;
@@ -246,6 +250,7 @@ input {
 }
 
 .message {
+  order: 4;
   min-height: 22px;
   margin: 2px 0 0;
   font-size: 15px;

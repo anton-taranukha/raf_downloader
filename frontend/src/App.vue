@@ -7,7 +7,7 @@ const fileNames = ref([''])
 const isLoading = ref(false)
 const message = ref('')
 const messageType = ref('info')
-const maxFileCount = 10
+const maxFileCount = 100
 const adminLogs = ref([])
 const adminMessage = ref('')
 const isAdminLoading = ref(false)
@@ -20,12 +20,7 @@ onMounted(() => {
 })
 
 async function downloadFiles(asArchive = false) {
-  const code = sharedCode.value.trim()
-  const trimmedFileNames = fileNames.value
-    .map((fileName) => fileName.trim())
-    .map((fileName) => applySharedCode(fileName, code))
-    .map(normalizePdfFileName)
-    .filter(Boolean)
+  const trimmedFileNames = collectFileNames()
   clearMessage()
 
   if (trimmedFileNames.length === 0) {
@@ -49,6 +44,16 @@ async function downloadFiles(asArchive = false) {
   } finally {
     isLoading.value = false
   }
+}
+
+function collectFileNames() {
+  const code = sharedCode.value.trim()
+
+  return fileNames.value
+    .flatMap((fileName) => fileName.trim().split(/\s+/))
+    .map((fileName) => applySharedCode(fileName, code))
+    .map(normalizePdfFileName)
+    .filter(Boolean)
 }
 
 async function downloadFilesSeparately(trimmedFileNames) {
